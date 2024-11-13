@@ -1,0 +1,441 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+% \pdfoutput=1
+% \Requirepackage{fix-cm}
+\usepackage{bbm}
+%\usepackage{BOONDOX-calo}
+\usepackage[auth-lg]{authblk}
+
+% \usepackage[backend=bibtex,citestyle=numeric-comp,bibstyle=ieee,sorting=none,firstinits=true]{biblatex}
+% \usepackage[style=numeric-comp,isbn=false,sorting=none,backend=bibtex,firstinits=true]{biblatex}
+% \addbibresource{references/references.bib}
+% \bibliographystyle{spmpsci}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[R]{\thepage}
+
+\usepackage[algo2e,linesnumbered,ruled,vlined]{algorithm2e}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
+\end_preamble
+\options smallcondensed
+\use_default_options true
+\begin_modules
+eqs-within-sections
+figs-within-sections
+fix-cm
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1.5cm
+\topmargin 1.5cm
+\rightmargin 1cm
+\bottommargin 1cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+An incremental linear perceptron based on the BFGS algorithm
+\end_layout
+
+\begin_layout Author
+Fl
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+'a
+\end_layout
+
+\end_inset
+
+vio Eler De Melo
+\end_layout
+
+\begin_layout Date
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+today
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Abstract
+This document briefly describes a new procedure for linear incremental learning
+ that minimises the least-square residues recursively based on the Broyden–Fletc
+her–Goldfarb–Shanno (BFGS) algorithm.
+\end_layout
+
+\begin_layout Section
+Least squares regressor
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $\mathrm{X}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathrm{Y}$
+\end_inset
+
+ be the input and output matrices with dimensions 
+\begin_inset Formula $n_{x}\times m$
+\end_inset
+
+ and 
+\begin_inset Formula $n_{y}\times m$
+\end_inset
+
+ respectively, where 
+\begin_inset Formula $m$
+\end_inset
+
+ is the number of examples.
+ The least squares problem requires to find the weight matrix 
+\begin_inset Formula $\mathrm{W}$
+\end_inset
+
+ (of dimension 
+\begin_inset Formula $n_{x}\times n_{y})$
+\end_inset
+
+ that minimizes the loss:
+\begin_inset Formula 
+\begin{equation}
+\mathcal{L}(\mathrm{X},\mathrm{Y},\mathrm{W})=\frac{1}{2}\sum_{j=1}^{n_{y}}\sum_{k=1}^{m_{\vphantom{y}}}\left(y_{jk}-\sum_{\ell=1}^{n_{x}}w_{\ell j}x_{\ell k}\right)^{2}.\label{eq:Loss}
+\end{equation}
+
+\end_inset
+
+Note that:
+\begin_inset Formula 
+\begin{align*}
+\nabla_{\mathrm{W}}\mathcal{L}(\mathrm{X},\mathrm{Y},\mathrm{W}) & =\left[\nabla_{\mathrm{W}}\mathcal{L}(\mathrm{X},\mathrm{Y},\mathrm{W})\right]_{ij}=-\sum_{k=1}^{m_{\vphantom{x}}}x_{ik}\left(y_{jk}-\sum_{\ell=1}^{n_{x}}w_{\ell j}x_{\ell k}\right)\\
+ & =-\mathrm{X}^{\vphantom{T}}\left(\mathrm{Y}^{\mathrm{T}}-\mathrm{X}^{\mathrm{T}}\mathrm{W}^{\vphantom{T}}\right)\equiv\boldsymbol{0}_{n_{x}\times n_{y}}.\\
+\mathrm{X}^{\vphantom{T}}\mathrm{X}^{\mathrm{T}}\mathrm{W}^{\vphantom{T}} & =\mathrm{X}^{\vphantom{T}}\mathrm{Y}^{\mathrm{T}},\\
+\mathrm{H}^{\vphantom{T}}\mathrm{W}^{\vphantom{T}} & =\mathrm{X}^{\vphantom{T}}\mathrm{Y^{\mathrm{T}}},\\
+\mathrm{W}^{\vphantom{T}} & =\mathrm{H}^{-1}\mathrm{X}^{\vphantom{T}}\mathrm{Y^{\mathrm{T}}},
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathrm{H}=\mathrm{H}^{\mathrm{T}}=\mathrm{X}\mathrm{X}^{\mathrm{T}}$
+\end_inset
+
+ (symmetric).
+ Therefore, a(n) (initial) solution can be calculated for the first collected
+ examples 
+\begin_inset Formula $(\mathrm{X}_{0},\mathrm{Y}_{0})$
+\end_inset
+
+ by:
+\begin_inset Formula 
+\begin{equation}
+\mathrm{W}_{0}^{\vphantom{T}}=\mathrm{H}_{0}^{-1}\mathrm{X}_{0}^{\vphantom{T}}\mathrm{Y_{0}^{\mathrm{T}}},\label{eq:initial-solution}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathrm{H}_{0}^{\vphantom{T}}=\mathrm{X}_{0}^{\vphantom{T}}\mathrm{X}_{0}^{\mathrm{T}}$
+\end_inset
+
+, 
+\begin_inset Formula $\mathrm{X}_{0}^{\vphantom{T}}=[x_{0,ij}]_{i\in[1..n_{x}],j\in[1..m]}$
+\end_inset
+
+ at step 
+\begin_inset Formula $k=0$
+\end_inset
+
+ for 
+\begin_inset Formula $n_{x}$
+\end_inset
+
+ dimensions (including the constant term) of the independent variable vector
+ and 
+\begin_inset Formula $m$
+\end_inset
+
+ training examples, 
+\begin_inset Formula $\mathrm{Y}_{0}^{\vphantom{T}}=[y_{0,ij}]_{i\in[1..n_{y}],j\in[1..m]}$
+\end_inset
+
+ at step 
+\begin_inset Formula $k=0$
+\end_inset
+
+ for 
+\begin_inset Formula $n_{y}$
+\end_inset
+
+ dimensions of the dependent variable vector.
+\end_layout
+
+\begin_layout Section
+Incremental update
+\end_layout
+
+\begin_layout Standard
+Now suppose that we will search for an incremental minimisation of 
+\begin_inset Formula $\mathcal{L}(\mathrm{X}_{k},\mathrm{Y}_{k},\mathrm{W}_{k})$
+\end_inset
+
+.
+ This can be done by finding the direction 
+\begin_inset Formula $\mathrm{p}_{k}$
+\end_inset
+
+ of minimisation via the (quasi) Newton equation:
+\begin_inset Formula 
+\begin{equation}
+\mathrm{H}_{k}\mathrm{p}_{k}=-\nabla_{\mathrm{W}}\mathcal{L}(\mathrm{X}_{k}^{\vphantom{T}},\mathrm{Y}_{k}^{\vphantom{T}},\mathrm{W}_{k}^{\vphantom{T}})=\mathrm{X}_{k}^{\vphantom{T}}\left(\mathrm{Y}_{k}^{\mathrm{T}}-\mathrm{X}_{k}^{\mathrm{T}}\mathrm{W}_{k}^{\vphantom{T}}\right).\label{eq:Newton-equation}
+\end{equation}
+
+\end_inset
+
+Note that for 
+\begin_inset Formula $\mathrm{H}_{0}^{\vphantom{T}}=\mathrm{X}_{0}^{\vphantom{T}}\mathrm{X}_{0}^{\mathrm{T}}$
+\end_inset
+
+, 
+\begin_inset Formula 
+\begin{align*}
+\mathrm{p}_{0}^{\vphantom{T}} & =\mathrm{H}_{0}^{-1}\mathrm{X}_{0}^{\vphantom{T}}\left(\mathrm{Y}_{0}^{\mathrm{T}}-\mathrm{X}_{0}^{\mathrm{T}}\mathrm{W}_{0}^{\vphantom{T}}\right)\\
+ & =\mathrm{H}_{0}^{-1}\mathrm{X}_{0}^{\vphantom{T}}\mathrm{Y}_{0}^{\mathrm{T}}-\mathrm{H}_{0}^{-1}\mathrm{X}_{0}^{\vphantom{T}}\mathrm{X}_{0}^{\mathrm{T}}\mathrm{W}_{0}^{\vphantom{T}}\\
+ & =\mathrm{W}_{0}^{\vphantom{T}}-\mathrm{W}_{0}^{\vphantom{T}}=\boldsymbol{0},
+\end{align*}
+
+\end_inset
+
+i.e., the loss functional is already at a minimum.
+ By assumption, 
+\begin_inset Formula $\mathrm{H}_{k-1}^{-1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathrm{W}_{k-1}^{\vphantom{T}}$
+\end_inset
+
+ are parameters kept to induce the incremental regression.
+ Therefore, given new examples 
+\begin_inset Formula $(\mathrm{X}_{k},\mathrm{Y}_{k})$
+\end_inset
+
+, our incremental task involves inducing the procedure by finding the incrementa
+l direction via
+\begin_inset Formula 
+\begin{equation}
+\mathrm{p}_{k}=-\mathrm{H}_{k-1}^{-1}\nabla_{\mathrm{W}}\mathcal{L}(\mathrm{X}_{k}^{\vphantom{T}},\mathrm{Y}_{k}^{\vphantom{T}},\mathrm{W}_{k-1}^{\vphantom{T}})=\mathrm{H}_{k-1}^{-1}\mathrm{X}_{k}^{\vphantom{T}}\left(\mathrm{Y}_{k}^{\mathrm{T}}-\mathrm{X}_{k}^{\mathrm{T}}\mathrm{W}_{k-1}^{\vphantom{T}}\right).\label{eq:Newton-incremental}
+\end{equation}
+
+\end_inset
+
+In the context of the Broyden–Fletcher–Goldfarb–Shanno (BFGS) algorithm,
+ the problem requires line search to find a proper incremental factor as:
+\begin_inset Formula 
+\begin{equation}
+\boldsymbol{\alpha}_{k}=\mathrm{argmin}_{\boldsymbol{\alpha}}\mathcal{L}(\mathrm{X}_{k},\mathrm{Y}_{k},\mathrm{W}_{k}(\boldsymbol{\alpha})),\label{eq:factor-line-search}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\mathrm{W}_{k}(\boldsymbol{\alpha})=\mathrm{W}_{k-1}+\boldsymbol{\alpha}\mathrm{p}_{k}$
+\end_inset
+
+, which can be computed analytically by
+\begin_inset Formula 
+\begin{align}
+\nabla_{\boldsymbol{\alpha}}\mathcal{L}(\mathrm{X}_{k},\mathrm{Y}_{k},\mathrm{W}_{k}(\boldsymbol{\alpha})) & =\nabla_{\mathrm{W}}^{\mathrm{T}}\mathcal{L}(\mathrm{X}_{k},\mathrm{Y}_{k},\mathrm{W}_{k})\nabla_{\boldsymbol{\alpha}}\mathrm{W}_{k}(\boldsymbol{\alpha})\nonumber \\
+ & =-\left(\mathrm{Y}_{k}^{\vphantom{T}}-\mathrm{W}_{k}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\right)\mathrm{X}_{k}^{\mathrm{T}}\mathrm{p}_{k}^{\vphantom{T}}\equiv\boldsymbol{0}_{n_{y}\times n_{y}},\nonumber \\
+\boldsymbol{\alpha}_{k}^{\vphantom{T}}\mathrm{p}_{k}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\mathrm{p}_{k}^{\vphantom{T}} & =\left(\mathrm{Y}_{k}^{\vphantom{T}}-\mathrm{W}_{k-1}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\right)\mathrm{X}_{k}^{\mathrm{T}}\mathrm{p}_{k}^{\vphantom{T}},\nonumber \\
+\boldsymbol{\alpha}_{k}^{\vphantom{T}} & =\left(\mathrm{Y}_{k}^{\vphantom{T}}-\mathrm{W}_{k-1}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\right)\mathrm{X}_{k}^{\mathrm{T}}\mathrm{p}_{k}^{\vphantom{T}}\left(\mathrm{p}_{k}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\mathrm{p}_{k}^{\vphantom{T}}\right)^{-1}.\label{eq:optimal-alpha}
+\end{align}
+
+\end_inset
+
+However, instead we will define a learning rate 
+\begin_inset Formula $\alpha_{k}$
+\end_inset
+
+ proportional to a value of reference 
+\begin_inset Formula $\alpha_{\mathrm{r}}$
+\end_inset
+
+ (a preset learning rate) that balances the effectiveness of negatives and
+ positives for the regression.
+ For instance, given 
+\begin_inset Formula $m=p+n$
+\end_inset
+
+ examples, with 
+\begin_inset Formula $p$
+\end_inset
+
+ positives and 
+\begin_inset Formula $n$
+\end_inset
+
+ negatives, 
+\begin_inset Formula $\alpha_{p,k}=\alpha_{\mathrm{r}}n/m$
+\end_inset
+
+ and 
+\begin_inset Formula $\alpha_{n,k}=\alpha_{\mathrm{r}}p/m$
+\end_inset
+
+ so that 
+\begin_inset Formula $\alpha_{p,k}+\alpha_{n,k}=\alpha_{\mathrm{r}}$
+\end_inset
+
+.
+ Note that for 
+\begin_inset Formula $p>n$
+\end_inset
+
+ the negative examples will have a higher factor to compensate for their
+ rarer (and so weaker) contribution whereas for 
+\begin_inset Formula $n>p$
+\end_inset
+
+ the positive examples will have a higher factor.
+ 
+\end_layout
+
+\begin_layout Standard
+Now, for each example, compute the weights increment and the loss gradient
+ increment by:
+\begin_inset Formula 
+\begin{equation}
+\delta\mathrm{W}_{k}=\alpha_{k}\mathrm{p}_{k},\label{eq:weights-increment}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align}
+\mathrm{z}_{k} & =\nabla_{\mathrm{W}}\mathcal{L}(\mathrm{X}_{k},\mathrm{Y}_{k},\mathrm{W}_{k-1}+\delta\mathrm{W}_{k})-\nabla_{\mathrm{W}}\mathcal{L}(\mathrm{X}_{k},\mathrm{Y}_{k},\mathrm{W}_{k-1})\nonumber \\
+ & =-\mathrm{X}_{k}^{\vphantom{T}}\left(\mathrm{Y}_{k}^{\mathrm{T}}-\mathrm{X}_{k}^{\mathrm{T}}\mathrm{W}_{k-1}^{\vphantom{T}}-\mathrm{X}_{k}^{\mathrm{T}}\alpha_{k}^{\vphantom{T}}\mathrm{p}_{k}^{\vphantom{T}}\right)+\mathrm{X}_{k}^{\vphantom{T}}\left(\mathrm{Y}_{k}^{\mathrm{T}}-\mathrm{X}_{k}^{\mathrm{T}}\mathrm{W}_{k-1}^{\vphantom{T}}\right)\nonumber \\
+ & =\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\alpha_{k}^{\vphantom{T}}\mathrm{p}_{k}^{\vphantom{T}}=\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}.\label{eq:gradient-increment}
+\end{align}
+
+\end_inset
+
+And finally, update the weights and the inverse Hessian matrix by the BFGS
+ algorithm and the Sherman-Morrison formula by:
+\begin_inset Formula 
+\begin{align}
+\mathrm{W}_{k} & =\mathrm{W}_{k-1}+\delta\mathrm{W}_{k},\label{eq:weights-update}\\
+\mathrm{H}_{k}^{-1} & =\left(\mathbb{I}-\frac{\delta\mathrm{W}_{k}^{\vphantom{T}}\mathrm{z}_{k}^{\mathrm{T}}}{\mathrm{z}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}}\right)\mathrm{H}_{k-1}^{-1}\left(\mathbb{I}-\frac{\mathrm{z}_{k}^{\vphantom{T}}\delta\mathrm{W}_{k}^{\mathrm{T}}}{\mathrm{z}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}}\right)+\frac{\delta\mathrm{W}_{k}^{\vphantom{T}}\delta\mathrm{W}_{k}^{\mathrm{T}}}{\mathrm{z}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}},\label{eq:inverse-Hessian-update}
+\end{align}
+
+\end_inset
+
+where:
+\begin_inset Formula 
+\begin{align}
+\delta\mathrm{W}_{k}^{\vphantom{T}}\mathrm{z}_{k}^{\mathrm{T}} & =\delta\mathrm{W}_{k}^{\vphantom{T}}\left(\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}\right)^{\mathrm{T}}=\delta\mathrm{W}_{k}^{\vphantom{T}}\left(\mathrm{X}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}\right)^{\mathrm{T}}\mathrm{X}_{k}^{\mathrm{T}}=\delta\mathrm{W}_{k}^{\vphantom{T}}\delta\mathrm{W}_{k}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}},\label{eq:matrix-1}\\
+\mathrm{z}_{k}^{\vphantom{T}}\delta\mathrm{W}_{k}^{\mathrm{T}} & =\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}\delta\mathrm{W}_{k}^{\mathrm{T}}=\left(\delta\mathrm{W}_{k}^{\vphantom{T}}\mathrm{z}_{k}^{\mathrm{T}}\right)^{\mathrm{T}},\label{eq:matrix-2}\\
+\mathrm{z}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}} & =\left(\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}\right)^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}=\delta\mathrm{W}_{k}^{\mathrm{T}}\mathrm{X}_{k}^{\vphantom{T}}\mathrm{X}_{k}^{\mathrm{T}}\delta\mathrm{W}_{k}^{\vphantom{T}}.\label{eq:matrix-3}
+\end{align}
+
+\end_inset
+
+The procedure is repeated until all examples have been taken into account.
+\end_layout
+
+\end_body
+\end_document

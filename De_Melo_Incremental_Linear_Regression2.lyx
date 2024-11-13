@@ -1,0 +1,380 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+% \pdfoutput=1
+% \Requirepackage{fix-cm}
+%\usepackage{bbm}
+%\usepackage{BOONDOX-calo}
+%\usepackage[auth-lg]{authblk}
+\usepackage{dsfont}
+
+% \usepackage[backend=bibtex,citestyle=numeric-comp,bibstyle=ieee,sorting=none,firstinits=true]{biblatex}
+% \usepackage[style=numeric-comp,isbn=false,sorting=none,backend=bibtex,firstinits=true]{biblatex}
+% \addbibresource{references/references.bib}
+% \bibliographystyle{spmpsci}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[R]{\thepage}
+
+\usepackage[algo2e,linesnumbered,ruled,vlined]{algorithm2e}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
+\end_preamble
+\options smallcondensed
+\use_default_options true
+\begin_modules
+fix-cm
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1cm
+\topmargin 1cm
+\rightmargin 1cm
+\bottommargin 1cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Section*
+Linear regression
+\end_layout
+
+\begin_layout Standard
+Model hypothesis:
+\begin_inset Formula 
+\[
+y=A\cdot x+B.
+\]
+
+\end_inset
+
+Given a sequence of pairs 
+\begin_inset Formula $((x_{i},y_{i}))_{i\in[1..N]}$
+\end_inset
+
+, we can estimate 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $B$
+\end_inset
+
+ by minimizing the square error
+\begin_inset Formula 
+\begin{equation}
+\mathcal{L}(x_{1},\dots,x_{N},y_{1},\dots,y_{N},A,B)=\sum_{i=1}^{N}(y_{i}-A\cdot x_{i}-B)^{\mathrm{T}}(y_{i}-A\cdot x_{i}-B).\label{eq:Square-error}
+\end{equation}
+
+\end_inset
+
+Solving for 
+\begin_inset Formula $B$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align}
+\nabla_{B}\mathcal{L}(x_{1},\dots,x_{N},y_{1},\dots,y_{N},A,B)=-2\sum_{i=1}^{N}(y_{i}-A\cdot x_{i}-B) & \equiv0,\nonumber \\
+\sum_{i=1}^{N}(y_{i}-A\cdot x_{i})-NB & =0,\nonumber \\
+B & =\frac{1}{N}\sum_{i=1}^{N}y_{i}-A\cdot\frac{1}{N}\sum_{i=1}^{N}x_{i},\nonumber \\
+B & =\bar{y}_{N}-A\cdot\bar{x}_{N}.\label{eq:Intercept-0}
+\end{align}
+
+\end_inset
+
+Solving for 
+\begin_inset Formula $A$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{flalign}
+ & \partial_{A}\mathcal{L}(x_{1},\dots,x_{N},y_{1},\dots,y_{N},A,B)=-2\sum_{i=1}(y_{i}-A\cdot x_{i}-B)x_{i}^{\mathrm{T}}\equiv0,\nonumber \\
+ & \sum_{i=1}(y_{i}-A\cdot x_{i}-\bar{y}_{N}+A\cdot\bar{x}_{N})x_{i}^{\mathrm{T}}=0,\nonumber \\
+ & \sum_{i=1}(y_{i}-\bar{y}_{N})x_{i}^{\mathrm{T}}-A\sum_{i=1}(x_{i}-\bar{x}_{N})x_{i}^{\mathrm{T}}=0,\nonumber \\
+ & A\left[\sum_{i=1}(x_{i}-\bar{x}_{N})x_{i}^{\mathrm{T}}\right]=\sum_{i=1}(y_{i}-\bar{y}_{N})x_{i}^{\mathrm{T}},\nonumber \\
+A & =\left[\sum_{i=1}(y_{i}-\bar{y}_{N})x_{i}^{\mathrm{T}}\right]\left[\sum_{i=1}(x_{i}-\bar{x}_{N})x_{i}^{\mathrm{T}}\right]^{-1}\nonumber \\
+ & =\left[\sum_{i=1}(y_{i}-\bar{y}_{N})x_{i}^{\mathrm{T}}-\left(\sum_{i=1}y_{i}\bar{x}_{N}^{\mathrm{T}}-N\bar{y}_{N}\bar{x}_{N}^{\mathrm{T}}\right)\right]\left[\sum_{i=1}(x_{i}-\bar{x}_{N})x_{i}^{\mathrm{T}}-\left(\sum_{i=1}x_{i}\bar{x}_{N}^{\mathrm{T}}-N\bar{x}_{N}\bar{x}_{N}^{\mathrm{T}}\right)\right]^{-1}\nonumber \\
+ & =\left[\sum_{i=1}(y_{i}-\bar{y}_{N})x_{i}^{\mathrm{T}}-\sum_{i=1}(y_{i}-\bar{y}_{N})\bar{x}_{N}^{\mathrm{T}}\right]\left[\sum_{i=1}(x_{i}-\bar{x}_{N})x_{i}^{\mathrm{T}}-\sum_{i=1}(x_{i}-\bar{x}_{N})\bar{x}_{N}^{\mathrm{T}}\right]^{-1}\nonumber \\
+ & =\left[\sum_{i=1}(y_{i}-\bar{y}_{N})(x_{i}-\bar{x}_{N})^{\mathrm{T}}\right]\left[\sum_{i=1}(x_{i}-\bar{x}_{N})(x_{i}-\bar{x}_{N})^{\mathrm{T}}\right]^{-1}\nonumber \\
+ & =\left[\frac{1}{N-1}\sum_{i=1}(y_{i}-\bar{y}_{N})(x_{i}-\bar{x}_{N})^{\mathrm{T}}\right]\left[\frac{1}{N-1}\sum_{i=1}(x_{i}-\bar{x}_{N})(x_{i}-\bar{x}_{N})^{\mathrm{T}}\right]^{-1}\nonumber \\
+ & =P_{YX,N}^{\vphantom{-1}}P_{X,N}^{-1}.\label{eq:Slope-0}
+\end{flalign}
+
+\end_inset
+
+Thus,
+\begin_inset Formula 
+\begin{align}
+A & =P_{YX,N}^{\vphantom{-1}}P_{X,N}^{-1},\label{eq:Slope}\\
+B & =\bar{y}_{N}-P_{YX,N}^{\vphantom{-1}}P_{X,N}^{-1}\cdot\bar{x}_{N}.\label{eq:Intercept}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Incremental updates to a linear regressor
+\end_layout
+
+\begin_layout Standard
+Computing the sample mean incrementally:
+\begin_inset Formula 
+\begin{align}
+\bar{x}_{N} & =\frac{1}{N}\sum_{i=1}^{N}x_{i}=\frac{1}{N}\sum_{i=1}^{N-L}x_{i}+\frac{1}{N}\sum_{j=1}^{L}x_{N-L+j}\nonumber \\
+ & =\frac{N-L}{N}\frac{1}{N-L}\sum_{i=1}^{N-L}x_{i}+\sum_{j=1}^{L}x_{N-L+j}\nonumber \\
+ & =\frac{N-L}{N}\bar{x}_{N-L}+\frac{1}{N}\sum_{j=1}^{L}x_{N-L+j}.\label{eq:x-mean-update}
+\end{align}
+
+\end_inset
+
+Equally,
+\begin_inset Formula 
+\begin{equation}
+\bar{y}_{N}=\frac{N-L}{N}\bar{y}_{N-L}+\frac{1}{N}\sum_{j=1}^{L}y_{N-L+j}.\label{eq:y-mean-update}
+\end{equation}
+
+\end_inset
+
+Let us define
+\begin_inset Formula 
+\begin{align}
+\mu_{x} & =\frac{1}{L}\sum_{j=1}^{L}x_{N-L+j},\label{eq:m_x}\\
+\mu_{y} & =\frac{1}{L}\sum_{j=1}^{L}y_{N-L+j},\label{eq:m_y}
+\end{align}
+
+\end_inset
+
+and so
+\begin_inset Formula 
+\begin{align*}
+\bar{x}_{N} & =\frac{1}{N}\left((N-L)\bar{x}_{N-L}+L\mu_{x}\right),\\
+\bar{y}_{N} & =\frac{1}{N}\left((N-L)\bar{y}_{N-L}+L\mu_{y}\right).
+\end{align*}
+
+\end_inset
+
+Rearranging the sample covariance:
+\begin_inset Formula 
+\begin{align*}
+P_{X,N} & =\frac{1}{N-1}\sum_{i=1}^{N}(x_{i}-\bar{x}_{N})(x_{i}-\bar{x}_{N})^{\mathrm{T}}\\
+ & =\frac{1}{N-1}\left[\sum_{i=1}^{N-L}(x_{i}-\bar{x}_{N})(x_{i}-\bar{x}_{N})^{\mathrm{T}}+\sum_{j=1}^{L}(x_{N-L+j}-\bar{x}_{N})(x_{N-L+j}-\bar{x}_{N})^{\mathrm{T}}\right]\\
+ & =\frac{1}{N-1}\sum_{i=1}^{N-L}\left(x_{i}-\frac{N-L}{N}\bar{x}_{N-L}-\frac{L}{N}\mu_{x}\right)\left(x_{i}-\frac{N-L}{N}\bar{x}_{N-L}-\frac{L}{N}\mu_{x}\right)^{\mathrm{T}}\\
+ & +\frac{1}{N-1}\sum_{j=1}^{L}\left(x_{N-L+j}-\frac{N-L}{N}\bar{x}_{N-L}-\frac{L}{N}\mu_{x}\right)\left(x_{N-L+j}-\frac{N-L}{N}\bar{x}_{N-L}-\frac{L}{N}\mu_{x}\right)^{\mathrm{T}}\\
+ & =\frac{1}{N-1}\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}+\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\right)\left(x_{i}-\bar{x}_{N-L}+\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\right)^{\mathrm{T}}\\
+ & +\frac{1}{N-1}\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}+\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\right)\left(x_{N-L+j}-\bar{x}_{N-L}+\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\right)^{\mathrm{T}}\\
+ & =\frac{1}{N-1}\left[\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}\right)\left(x_{i}-\bar{x}_{N-L}\right)^{\mathrm{T}}+2\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}\right)^{\mathrm{T}}+\left(\frac{L}{N}\right)^{2}\sum_{i=1}^{N-L}\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left[\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}+2\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}+\left(\frac{L}{N}\right)^{2}\sum_{j=1}^{L}\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right]\\
+ & =\left(\frac{N-L-1}{N-1}\right)\frac{1}{N-L-1}\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}\right)\left(x_{i}-\bar{x}_{N-L}\right)^{\mathrm{T}}+\frac{1}{N-1}\left[2\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\cancel{\left(\sum_{i=1}^{N-L}x_{i}-\sum_{i=1}^{N-L}\bar{x}_{N-L}\right)^{\mathrm{T}}}\right]\\
+ & +\frac{1}{N-1}\left[\left(\frac{L}{N}\right)^{2}(N-L)\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left[\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left[2\frac{L}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\left(L\mu_{x}-L\bar{x}_{N-L}\right)^{\mathrm{T}}+\left(\frac{L}{N}\right)^{2}L\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right]\\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{X,N-L}+\frac{1}{N-1}\left(\frac{L}{N}\right)^{2}\left[(N-L)\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}+L\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left[\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}-2\frac{L^{2}}{N}\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right],
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+P_{X,N} & =\left(\frac{N-L-1}{N-1}\right)P_{X,N-L}+\frac{1}{N-1}\left(\frac{L}{N}\right)^{2}\left[N\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}-2N\left(\bar{x}_{N-L}-\mu_{x}\right)\left(\bar{x}_{N-L}-\mu_{x}\right)^{\mathrm{T}}\right]\nonumber \\
+ & +\frac{1}{N-1}\left[\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{X,N-L}+\frac{1}{N-1}\left[\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}-\frac{1}{N}\left(L\bar{x}_{N-L}-L\mu_{x}\right)\left(L\bar{x}_{N-L}-L\mu_{x}\right)^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{X,N-L}+\frac{1}{N-1}\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(x_{N-L+j}-\bar{x}_{N-L}\right)^{\mathrm{T}}.\nonumber \\
+ & +\frac{1}{N-1}\frac{1}{N}\left[\left[\sum_{j=1}^{L}(x_{N-L+j}-\bar{x}_{N-L})\right]\left[\sum_{j=1}^{L}(x_{N-L+j}-\bar{x}_{N-L})\right]^{\mathrm{T}}\right].\label{eq:x-cov-update-1}
+\end{align}
+
+\end_inset
+
+For the covariance 
+\begin_inset Formula $P_{XY,N},$
+\end_inset
+
+we have
+\begin_inset Formula 
+\begin{align*}
+P_{XY,N} & =\frac{1}{N-1}\sum_{i=1}^{N}(x_{i}-\bar{x}_{N})(y_{i}-\bar{y}_{N})^{\mathrm{T}}\\
+ & =\frac{1}{N-1}\left[\sum_{i=1}^{N-L}(x_{i}-\bar{x}_{N})(y_{i}-\bar{y}_{N})^{\mathrm{T}}+\sum_{j=1}^{L}(x_{N-L+j}-\bar{x}_{N})(y_{N-L+j}-\bar{y}_{N})^{\mathrm{T}}\right]\\
+ & =\frac{1}{N-1}\sum_{i=1}^{N-L}\left(x_{i}-\frac{N-L}{N}\bar{x}_{N-L}-\frac{1}{N}S_{x}\right)\left(y_{i}-\frac{N-L}{N}\bar{y}_{N-L}-\frac{1}{N}S_{y}\right)^{\mathrm{T}}\\
+ & +\frac{1}{N-1}\sum_{j=1}^{L}\left(x_{N-L+j}-\frac{N-L}{N}\bar{x}_{N-L}-\frac{1}{N}S_{x}\right)\left(y_{N-L+j}-\frac{N-L}{N}\bar{y}_{N-L}-\frac{1}{N}S_{y}\right)^{\mathrm{T}}\\
+ & =\frac{1}{N-1}\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}+\frac{1}{N}\left(L\bar{x}_{N-L}-S_{x}\right)\right)\left(y_{i}-\bar{y}_{N-L}+\frac{1}{N}\left(L\bar{y}_{N-L}-S_{y}\right)\right)^{\mathrm{T}}\\
+ & +\frac{1}{N-1}\sum_{j=1}^{L}\left(\frac{1}{N}\left(Nx_{N-L+j}-S_{x}\right)-\frac{N-L}{N}\bar{x}_{N-L}\right)\left(\frac{1}{N}\left(Ny_{N-L+j}-S_{y}\right)-\frac{N-L}{N}\bar{y}_{N-L}\right)^{\mathrm{T}}\\
+ & =\frac{1}{N-1}\left[\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}\right)\left(y_{i}-\bar{y}_{N-L}\right)^{\mathrm{T}}+\frac{1}{N}\left(L\bar{x}_{N-L}-S_{x}\right)\sum_{i=1}^{N-L}\left(y_{i}-\bar{y}_{N-L}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left[\frac{1}{N}\left(L\bar{y}_{N-L}-S_{y}\right)\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}\right)^{\mathrm{T}}+\left(\frac{1}{N}\right)^{2}\sum_{i=1}^{N-L}\left(L\bar{x}_{N-L}-S_{x}\right)\left(L\bar{y}_{N-L}-S_{y}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[\sum_{j=1}^{L}\left(Nx_{N-L+j}-S_{x}\right)\left(Ny_{N-L+j}-S_{y}\right)^{\mathrm{T}}-(N-L)\bar{x}_{N-L}\sum_{j=1}^{L}\left(Ny_{N-L+j}-S_{y}\right)^{\mathrm{T}}\right]\\
+ & ++\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[-(N-L)\bar{y}_{N-L}\sum_{j=1}^{L}\left(Nx_{N-L+j}-S_{x}\right)^{\mathrm{T}}+\sum_{j=1}^{L}\left(N-L\right)^{2}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}\right]\\
+ & =\left(\frac{N-L-1}{N-1}\right)\frac{1}{N-L-1}\sum_{i=1}^{N-L}\left(x_{i}-\bar{x}_{N-L}\right)\left(y_{i}-\bar{y}_{N-L}\right)^{\mathrm{T}}\\
+ & +\frac{1}{N-1}\left[\frac{1}{N}\left(L\bar{x}_{N-L}-S_{x}\right)\cancel{\left(\sum_{i=1}^{N-L}y_{i}-\sum_{i=1}^{N-L}\bar{y}_{N-L}\right)^{\mathrm{T}}}+\frac{1}{N}\left(L\bar{y}_{N-L}-S_{y}\right)\cancel{\left(\sum_{i=1}^{N-L}x_{i}-\sum_{i=1}^{N-L}\bar{x}_{N-L}\right)^{\mathrm{T}}}\right]\\
+ & +\frac{1}{N-1}\left[\left(\frac{1}{N}\right)^{2}(N-L)\left(L\bar{x}_{N-L}-S_{x}\right)\left(L\bar{y}_{N-L}-S_{y}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[\sum_{j=1}^{L}\left(Nx_{N-L+j}-S_{x}\right)\left(Ny_{N-L+j}-S_{y}\right)^{\mathrm{T}}-(N-L)\bar{x}_{N-L}\left(N\sum_{j=1}^{L}y_{N-L+j}-LS_{y}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[-(N-L)\bar{y}_{N-L}\left(N\sum_{j=1}^{L}x_{N-L+j}-LS_{x}\right)^{\mathrm{T}}+L\left(N-L\right)^{2}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}\right]\\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}+\frac{1}{N-1}\left[\left(\frac{1}{N}\right)^{2}(N-L)\left(L\bar{x}_{N-L}-S_{x}\right)\left(L\bar{y}_{N-L}-S_{y}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[\sum_{j=1}^{L}\left(Nx_{N-L+j}-S_{x}\right)\left(Ny_{N-L+j}-S_{y}\right)^{\mathrm{T}}\right]\\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[-(N-L)^{2}\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}-(N-L)^{2}\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}+L\left(N-L\right)^{2}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}\right],
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+P_{XY,N} & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[(N-L)\left(L\bar{x}_{N-L}-S_{x}\right)\left(L\bar{y}_{N-L}-S_{y}\right)^{\mathrm{T}}+\sum_{j=1}^{L}\left(Nx_{N-L+j}-S_{x}\right)\left(Ny_{N-L+j}-S_{y}\right)^{\mathrm{T}}\right]\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[-(N-L)^{2}\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}-(N-L)^{2}\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}+L\left(N-L\right)^{2}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}+\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[(N-L)\left(L^{2}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}-L\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}-L\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}+S_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}\right)\right]\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[\left(N^{2}\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}-2NS_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}+S_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}\right)\right]\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[-(N-L)^{2}\left(\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}+\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}\right)+L\left(N-L\right)^{2}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[(N-L)(\cancel{L^{2}}+NL-\cancel{L^{2}})\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}+(-NL+\cancel{L^{2}}-N^{2}+2NL-\cancel{L^{2}})\left(\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}+\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}\right)\right]\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[(N-\cancel{L}-2N+\cancel{L})S_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}+N^{2}\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)^{2}\left[(N-L)NL\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}-N(N-L)\left(\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}+\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}\right)-NS_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}+N^{2}\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)\left[(N-L)L\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}-(N-L)\left(\bar{x}_{N-L}^{\vphantom{T}}S_{y}^{\mathrm{T}}+\bar{y}_{N-L}^{\vphantom{T}}S_{x}^{\mathrm{T}}\right)-S_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}+N\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}+\frac{1}{N-1}\left(\frac{1}{N}\right)\left[(N-L)\sum_{j=1}^{L}\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}\right]\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)\left[-(N-L)\left(\bar{x}_{N-L}^{\vphantom{T}}\sum_{j=1}^{L}y_{N-L+j}^{\mathrm{T}}+\bar{y}_{N-L}^{\vphantom{T}}\sum_{j=1}^{L}x_{N-L+j}^{\mathrm{T}}\right)-S_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}+N\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)\left[(N-L)\sum_{j=1}^{L}\left(\bar{x}_{N-L}^{\vphantom{T}}\bar{y}_{N-L}^{\mathrm{T}}-\bar{x}_{N-L}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}-\bar{y}_{N-L}^{\vphantom{T}}x_{N-L+j}^{\mathrm{T}}+x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}\right)\right]\nonumber \\
+ & +\frac{1}{N-1}\left(\frac{1}{N}\right)\left[L\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}-S_{x}^{\vphantom{T}}S_{y}^{\mathrm{T}}\right]\nonumber \\
+ & =\left(\frac{N-L-1}{N-1}\right)P_{XY,N-L}+\frac{1}{N-1}\frac{1}{N}\left[(N-L)\sum_{j=1}^{L}\left(x_{N-L+j}-\bar{x}_{N-L}\right)\left(y_{N-L+j}-\bar{y}_{N-L}\right)^{\mathrm{T}}\right].\nonumber \\
+ & +\frac{1}{N-1}\frac{1}{N}\left[L\sum_{j=1}^{L}x_{N-L+j}^{\vphantom{T}}y_{N-L+j}^{\mathrm{T}}-\left(\sum_{j=1}^{L}x_{N-L+j}\right)\left(\sum_{j=1}^{L}y_{N-L+j}\right)^{\mathrm{T}}\right].\label{eq:xy-cov-update-1}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Summary
+\end_layout
+
+\begin_layout Standard
+Given the previous moments 
+\begin_inset Formula $(\bar{x}_{N},\bar{y}_{N},P_{X,N},P_{XY,N})$
+\end_inset
+
+, and 
+\begin_inset Formula $L$
+\end_inset
+
+ new pairs 
+\begin_inset Formula $((x_{j},y_{j}))_{j\in[N+1..N+L]}$
+\end_inset
+
+, the update of the linear regressor is given as follows.
+ Update the moments
+\begin_inset Formula 
+\begin{align*}
+\bar{x}_{N+L} & =\frac{N}{N+L}\bar{x}_{N}+\frac{1}{N+L}\sum_{j=1}^{L}x_{N+j},\\
+\bar{y}_{N+L} & =\frac{N}{N+L}\bar{y}_{N}+\frac{1}{N+L}\sum_{j=1}^{L}y_{N+j},\\
+P_{X,N+L} & =\left(\frac{N-1}{N+L-1}\right)P_{X,N}\\
+ & +\frac{1}{N+L-1}\frac{1}{N+L}\left[N\sum_{j=1}^{L}\left(x_{N+j}-\bar{x}_{N}\right)\left(x_{N+j}-\bar{x}_{N}\right)^{\mathrm{T}}+L\sum_{j=1}^{L}x_{N+j}^{\vphantom{T}}x_{N+j}^{\mathrm{T}}-\left(\sum_{j=1}^{L}x_{N+j}\right)\left(\sum_{j=1}^{L}x_{N+j}\right)^{\mathrm{T}}\right]\\
+ & =\left(\frac{N-1}{N+L-1}\right)P_{X,N}+\frac{1}{N+L-1}\frac{1}{N+L}\left[N\sum_{j=1}^{L}\left(x_{N+j}-\bar{x}_{N}\right)\left(x_{N+j}-\bar{x}_{N}\right)^{\mathrm{T}}+L\sum_{j=1}^{L}x_{N+j}^{\vphantom{T}}(x_{N+j}^{\vphantom{T}}-\bar{x}_{N+1:N+L}^{\vphantom{T}})^{\mathrm{T}}\right]\\
+P_{XY,N+L} & =\left(\frac{N-1}{N+L-1}\right)P_{XY,N}\\
+ & +\frac{1}{N+L-1}\frac{1}{N+L}\left[N\sum_{j=1}^{L}\left(x_{N+j}-\bar{x}_{N}\right)\left(y_{N+j}-\bar{y}_{N}\right)^{\mathrm{T}}+L\sum_{j=1}^{L}x_{N+j}^{\vphantom{T}}y_{N+j}^{\mathrm{T}}-\left(\sum_{j=1}^{L}x_{N+j}\right)\left(\sum_{j=1}^{L}y_{N+j}\right)^{\mathrm{T}}\right]\\
+ & =\left(\frac{N-1}{N+L-1}\right)P_{XY,N}+\frac{1}{N+L-1}\frac{1}{N+L}\left[N\sum_{j=1}^{L}\left(x_{N+j}-\bar{x}_{N}\right)\left(y_{N+j}-\bar{y}_{N}\right)^{\mathrm{T}}+L\sum_{j=1}^{L}x_{N+j}^{\vphantom{T}}(y_{N+j}^{\vphantom{T}}-\bar{y}_{N+1:N+L}^{\vphantom{T}})^{\mathrm{T}}\right],
+\end{align*}
+
+\end_inset
+
+and then update the slope and intercept as
+\begin_inset Formula 
+\begin{align}
+A_{N+L} & =P_{XY,N+L}^{\vphantom{-1}}P_{X,N+L}^{-1},\label{eq:Slope-1}\\
+B_{N+L} & =\bar{y}_{N+L}-A_{N+L}\cdot\bar{x}_{N+L}.\label{eq:Intercept-1}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
