@@ -1,148 +1,159 @@
 import numpy as np
-import scipy.linalg as la
 import copy as cp
 import time
 
-import ctypes
-from numpy.ctypeslib import ndpointer
-_ = ctypes.CDLL('libblas.so', mode=ctypes.RTLD_GLOBAL)
-approxInv = ctypes.cdll.LoadLibrary("./approxInv.so")
-# approxInv = ctypes.CDLL("./approxInv.so", mode=ctypes.RTLD_GLOBAL)
-approxInv.approxInv.restype = ctypes.c_int
-approxInv.approxInv.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                ctypes.c_int, ctypes.c_int, ctypes.c_double,
-                ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
+# import ctypes
+# from numpy.ctypeslib import ndpointer
+# _ = ctypes.CDLL('libblas.so', mode=ctypes.RTLD_GLOBAL)
+# approxInv = ctypes.cdll.LoadLibrary("./approxInv.so")
+# # approxInv = ctypes.CDLL("./approxInv.so", mode=ctypes.RTLD_GLOBAL)
+# approxInv.approxInv.restype = ctypes.c_int
+# approxInv.approxInv.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+#                 ctypes.c_int, ctypes.c_int, ctypes.c_double,
+#                 ndpointer(ctypes.c_double, flags="C_CONTIGUOUS")]
+
 
 def fSubs(P, L, b):
     if len(b.shape) == 1:
-        c = P.dot(b.reshape(-1,1))
+        c = P.dot(b.reshape(-1, 1))
     else:
         c = P.dot(b)
     n = c.shape[0]
     y = np.zeros(c.shape)
-    y[0,:] = c[0,:]/L[0,0]
-    for i in range(1,n):
-        y[i,:] = (c[i,:]-L[i,:i].reshape(1,-1).dot(y[:i,:]))/L[i,i]
+    y[0, :] = c[0, :] / L[0, 0]
+    for i in range(1, n):
+        y[i, :] = (c[i, :] - L[i, :i].reshape(1, -1).dot(y[:i, :]))/L[i, i]
     if len(b.shape) == 1:
         y = y.ravel()
     return y
 
+
 def bSubs(U, y):
     if len(y.shape) == 1:
-        w = y.reshape(-1,1)
+        w = y.reshape(-1, 1)
     else:
         w = y
     n = w.shape[0]
     x = np.zeros(w.shape)
-    x[n-1,:] = w[n-1,:]/U[n-1,n-1]
-    for i in reversed(range(0,n-1)):
-        x[i,:] = (w[i,:]-U[i,i+1:].reshape(1,-1).dot(x[i+1:,:]))/U[i,i]
+    x[n - 1, :] = w[n - 1, :] / U[n-1, n-1]
+    for i in reversed(range(0, n-1)):
+        x[i, :] = (
+            w[i, :]-U[i, i+1:].reshape(1, -1).dot(x[i + 1:, :])
+        ) / U[i, i]
     if len(y.shape) == 1:
         x = x.ravel()
     return x
+
 
 def solve(P, L, U, b):
     y = fSubs(P, L, b)
     x = bSubs(U, y)
     return x
 
+
 def initInv(H):
-    # G = H.T/(np.linalg.norm(H)**2)
+    # G = H.T / (np.linalg.norm(H) ** 2)
     G = H
     # P, L, U = la.lu(G)
     # V = solve(P, L, U, np.eye(G.shape[0]))
     V = np.linalg.solve(G, np.eye(G.shape[0]))
     return V
 
+
 def iterInv1(H1, X2, order=3, tol=1e-6):
     H2 = X2.dot(X2.T)
-    I = np.eye(H2.shape[0])
+    Id = np.eye(H2.shape[0])
     H = H1 + H2
     G = initInv(H)
     # alpha = np.max(np.sum(np.abs(H.dot(H.T)), axis=1))
-    # G = (2.0/alpha)*H.T
-    Y = I-H.dot(G)
+    # G = (2.0 / alpha) * H.T
+    Y = Id - H.dot(G)
     fNorm = np.sqrt(np.sum(Y**2))
     # print('|I - F.F_i| = {:f}'.format(fNorm))
     while fNorm > tol:
-        Z = I + Y
-        for _ in range(order-1): # 2n^2
-            Z = I +Y.dot(Z)
-        G = G.dot(Z) # n^2
+        Z = Id + Y
+        for _ in range(order - 1):  # 2n^2
+            Z = Id + Y.dot(Z)
+        G = G.dot(Z)  # n^2
         Y = I-H.dot(G)
         fNorm = np.sqrt(np.sum(Y**2))
         # print('|I - F.F_i| = {:f}'.format(fNorm))
     return G
 
+
 # Schulz iteration
 def iterInv2(H1, X2, order=3, tol=1e-6):
     H2 = X2.dot(X2.T)
-    I = np.eye(H2.shape[0])
+    Id = np.eye(H2.shape[0])
     H = H1 + H2
     alpha = np.max(np.sum(np.abs(H.dot(H.T)), axis=1))
-    G = (2.0/alpha)*H.T
+    G = (2.0 / alpha)*H.T
     G0 = np.zeros(G.shape)
-    fNorm = np.sqrt(np.sum((G-G0)**2))
+    fNorm = np.sqrt(np.sum((G - G0) ** 2))
     # print('|G - G_prv| = {:f}'.format(fNorm))
     while fNorm > tol:
         G0 = cp.copy(G)
-        Y = I-H.dot(G) # n^2
-        Z = I + Y
-        for _ in range(order-1): # 3n^2
-            Z = I +Y.dot(Z)
-        G = G.dot(Z) # n^2
-        fNorm = np.sqrt(np.sum((G-G0)**2))
+        Y = Id - H.dot(G)  # n^2
+        Z = Id + Y
+        for _ in range(order - 1):  # 3n^2
+            Z = Id + Y.dot(Z)
+        G = G.dot(Z)  # n^2
+        fNorm = np.sqrt(np.sum((G - G0) ** 2))
         # print('|G - G_prv| = {:f}'.format(fNorm))
         # G = 2*G -G.dot(H).dot(G) # 2*k*n^2
     return G
 
+
 # Schulz iteration
 def iterInv3(H1, X2, tol=1e-6):
     H2 = X2.dot(X2.T)
-    I = np.eye(H2.shape[0])
+    Id = np.eye(H2.shape[0])
     H = H1 + H2
     alpha = np.max(np.sum(np.abs(H.dot(H.T)), axis=1))
-    G = (2.0/alpha)*H.T
+    G = (2.0 / alpha) * H.T
     G0 = np.zeros(G.shape)
-    fNorm = np.sqrt(np.sum((G-G0)**2))
+    fNorm = np.sqrt(np.sum((G - G0)**2))
     # print('|G - G_prv| = {:f}'.format(fNorm))
     while fNorm > tol:
         G0 = cp.copy(G)
-        G = 2*G.dot(I -H.dot(G)) # 2*k*n^2
-        fNorm = np.sqrt(np.sum((G-G0)**2))
+        G = 2 * G.dot(Id - H.dot(G))  # 2*k*n^2
+        fNorm = np.sqrt(np.sum((G - G0)**2))
         # print('|G - G_prv| = {:f}'.format(fNorm))
     return G
 
+
 def iterInv4(H1, X2, tol=1e-6):
     H2 = X2.dot(X2.T)
-    I = np.eye(H2.shape[0])
+    Id = np.eye(H2.shape[0])
     H = H1 + H2
     alpha = np.max(np.sum(np.abs(H.dot(H.T)), axis=1))
-    G = (2.0/alpha)*H.T
+    G = (2.0 / alpha) * H.T
     P = H.dot(G)
-    Y = P-I
-    I2 = 2*I
-    I3 = 3*I
-    I7 = 7*I
-    I13 = 13*I
-    I15 = 15*I 
+    Y = P - Id
+    I2 = 2 * Id
+    I3 = 3 * Id
+    I7 = 7 * Id
+    I13 = 13 * Id
+    I15 = 15 * Id
     fNorm = np.sqrt(np.sum(Y**2))
     # print('|I - F.F_i| = {:f}'.format(fNorm))
     while fNorm > tol:
-        Z = I3 +P.dot(-I2 +Y) # n^2
-        V = P.dot(Z) # n^2
-        G = -0.25*G.dot(Z).dot(-I13 +V.dot(I15 +V.dot(-I7 +V))) # 4n^2
-        P = H.dot(G) # n^2
-        Y = P-I # n^2
-        fNorm = np.sqrt(np.sum(Y**2))
+        Z = I3 + P.dot(-I2 + Y)  # n^2
+        V = P.dot(Z)  # n^2
+        G = -0.25 * G.dot(Z).dot(-I13 + V.dot(I15 + V.dot(-I7 + V)))  # 4n^2
+        P = H.dot(G)  # n^2
+        Y = P - Id  # n^2
+        fNorm = np.sqrt(np.sum(Y ** 2))
         # print('|I - F.F_i| = {:f}'.format(fNorm))
     return G
 
+
 def softAbs(M, tol=1e-6):
     L, V = np.linalg.eig(M)
-    L_t = np.diag(L/np.tanh(L/tol))
+    L_t = np.diag(L / np.tanh(L / tol))
     M_t = V.dot(L_t.dot(V.T))
     return M_t
+
 
 def nearestSPD(A, f=1e-6, tol=1e-12):
     B = (A + A.T)/2
@@ -154,37 +165,38 @@ def nearestSPD(A, f=1e-6, tol=1e-12):
     # Spectral radius
     rho_C = np.max(np.abs(L1c))
     # C^2 . u = L^2 . u
-    L = L1c**2
+    L = L1c ** 2
     Z = Z1c
     B = Z.T.dot(B).dot(Z)
     b_ii = np.diag(B)
     ind = b_ii < 0
     if np.any(ind):
-        S = np.sqrt(np.max(b_ii[ind]**2-L[ind]))
+        S = np.sqrt(np.max(b_ii[ind] ** 2 - L[ind]))
     else:
         S = 0.0
     # Bounds
     alpha = max([rho_C, S, M])
     beta = rho_C + M
     try:
-        X_a = B + np.sqrt(alpha**2 +np.diag(L))
+        X_a = B + np.sqrt(alpha ** 2 + np.diag(L))
         _ = np.linalg.cholesky(X_a)
         beta = alpha
         return X_a
-    except:
-        while (beta-alpha)/2 > max(f*alpha, tol):
-            r = (alpha +beta)/2
-            X_r = B + np.sqrt(alpha**2 +np.diag(L))
+    except Exception:
+        while (beta-alpha) / 2 > max(f*alpha, tol):
+            r = (alpha + beta) / 2
+            X_r = B + np.sqrt(alpha**2 + np.diag(L))
             try:
                 _ = np.linalg.cholesky(X_r)
                 beta = r
-            except:
+            except Exception:
                 alpha = r
-        return B + np.sqrt(beta**2 +np.diag(L))
+        return B + np.sqrt(beta ** 2 + np.diag(L))
 
-d_x = 1000
-d_y = 1000
-h = np.random.randn(d_x,1)
+
+d_x = 10  # 1000
+d_y = 10  # 1000
+h = np.random.randn(d_x, 1)
 H = h.dot(h.T) + 10*np.random.rand(1)*np.eye(d_x)
 
 # gamma = np.random.randn(d_x, d_y)
@@ -268,10 +280,10 @@ H = h.dot(h.T) + 10*np.random.rand(1)*np.eye(d_x)
 # print(A.dot(g_T_u.T))
 
 # Other tests
-X = 10*np.random.randn(d_x,1500)
-X1 = 10*np.random.randn(d_x,1500)
-X2 = 10*np.random.randn(d_x,1500)
-X = np.concatenate((X1,X2),axis=1)
+X = 0.1 * np.random.randn(d_x, 1500)
+X1 = 0.1 * np.random.randn(d_x, 1500)
+X2 = 0.1 * np.random.randn(d_x, 1500)
+X = np.concatenate((X1, X2), axis=1)
 
 delta = np.random.randn(d_x, d_y)
 gamma = np.random.randn(d_x, d_y)
@@ -312,22 +324,23 @@ G1 = np.linalg.inv(X1.dot(X1.T))
 H1 = X1.dot(X1.T)
 t = time.time()
 H2 = X2.dot(X2.T)
-L, V = np.linalg.eigh(H1+H2)
-U = V
-# U, L, V = np.linalg.svd(H1+H2, hermitian=True)
-G_i = V.T.dot(np.diag(1.0/L)).dot(U)
+# L, V = np.linalg.eigh(H1 + H2)
+# U = V
+U, L, V = np.linalg.svd(H1 + H2, hermitian=True)
+G_i = V.T.dot(np.diag(1.0 / L)).dot(U)
 print('Based on eigendecomposition: {:} s'.format(time.time()-t))
-print('|G - G_app| = {:}'.format(np.linalg.norm(G-G_i)))
+print('|G - G_app| = {:}'.format(np.linalg.norm(G - G_i)))
 # print('G_app =\n{:}'.format(G_i))
 
 t = time.time()
 H2 = X2.dot(X2.T)
-I = np.eye(d_x)
+Id = np.eye(d_x)
 P = H2.dot(G1)
 # G_i = G1 -G1.dot(np.linalg.solve(np.linalg.inv(H2) + G1, G1))
-G_i = G1.dot(I -np.linalg.solve(I + P, P))
+# G1 - G1 (I + H2 G1)^-1 H2 G1
+G_i = G1.dot(Id - np.linalg.solve(Id + P, P))
 print('Based on Woodbury identity: {:} s'.format(time.time()-t))
-print('|G - G_app| = {:}'.format(np.linalg.norm(G-G_i)))
+print('|G - G_app| = {:}'.format(np.linalg.norm(G - G_i)))
 # print('G_app =\n{:}'.format(G_i))
 
 t = time.time()
@@ -336,27 +349,27 @@ H_i = H1 + H2
 G_i = np.linalg.inv(H_i)
 # G_i = np.linalg.solve(H_i, np.eye(d_x))
 print('Based on direct inversion: {:} s'.format(time.time()-t))
-print('|G - G_app| = {:}'.format(np.linalg.norm(G-G_i)))
+print('|G - G_app| = {:}'.format(np.linalg.norm(G - G_i)))
 # print('G =\n{:}'.format(G_i))
 
 # Schulz iteration O(6*n^2)
 t = time.time()
 # G_i = iterInv1(H1, X2, order=3, tol=1e-2)
-G_i = initInv(H1+X2.dot(X2.T))
+G_i = initInv(H1 + X2.dot(X2.T))
 # G_i = iterInv3(H1, X2, tol=1e-2)
 # G_i = iterInv4(H1, X2, tol=1e-2)
 print('Based on Schulz iteration 1: {:} s'.format(time.time()-t))
-print('|G - G_app| = {:}'.format(np.linalg.norm(G-G_i)))
+print('|G - G_app| = {:}'.format(np.linalg.norm(G - G_i)))
 # print('G =\n{:}\n'.format(G[:3,:3]))
 # print('G_app =\n{:}'.format(G_i[:3,:3]))
 
-t = time.time()
-H2 = X2.dot(X2.T)
-F_i = H1 + H2
-F = np.zeros(F_i.T.shape)
-ret = approxInv.approxInv(F_i, d_x, 2, 1e-2, F)
-G_i = F
-print('Based on Schulz iteration 2: {:} s'.format(time.time()-t))
-print('|G - G_app| = {:}'.format(np.linalg.norm(G-G_i)))
-print('G =\n{:}\n'.format(G[:3,:3]))
-print('G_app =\n{:}'.format(G_i[:3,:3]))
+# t = time.time()
+# H2 = X2.dot(X2.T)
+# F_i = H1 + H2
+# F = np.zeros(F_i.T.shape)
+# ret = approxInv.approxInv(F_i, d_x, 2, 1e-2, F)
+# G_i = F
+# print('Based on Schulz iteration 2: {:} s'.format(time.time()-t))
+# print('|G - G_app| = {:}'.format(np.linalg.norm(G-G_i)))
+# print('G =\n{:}\n'.format(G[:3,:3]))
+# print('G_app =\n{:}'.format(G_i[:3,:3]))
